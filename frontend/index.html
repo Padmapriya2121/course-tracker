@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LearnTrack — Course Progress Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3a;
+    --accent: #7c6af7;
+    --accent2: #f76a8a;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124,106,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -200px; right: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(247,106,138,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .nav-links { display: flex; gap: 8px; }
+  .nav-links button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-links button:hover, .nav-links button.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  /* ── Pages ── */
+  .page { display: none; padding-top: 90px; min-height: 100vh; position: relative; z-index: 1; }
+  .page.active { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Hero ── */
+  .hero {
+    max-width: 900px;
+    margin: 80px auto 0;
+    padding: 0 48px;
+    text-align: center;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(124,106,247,0.15);
+    border: 1px solid rgba(124,106,247,0.3);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    font-size: 18px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 540px;
+    margin: 0 auto 40px;
+    font-weight: 300;
+  }
+
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 14px 28px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #9b8ef7);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(124,106,247,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,106,247,0.45); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { background: var(--surface2); border-color: var(--accent); }
+
+  /* ── Features ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+    margin: 80px auto 0;
+    padding: 0 48px 80px;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s;
+  }
+  .feature-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .feature-card h3 {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .feature-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* ── Auth Forms ── */
+  .auth-wrap {
+    max-width: 440px;
+    margin: 60px auto;
+    padding: 0 24px;
+  }
+
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+  }
+
+  .auth-card h2 {
+    font-family: var(--font-head);
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .auth-card .subtitle { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+  .form-group { margin-bottom: 18px; }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .form-group select option { background: var(--surface2); }
+
+  .btn-full { width: 100%; margin-top: 8px; }
+
+  .auth-switch {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .auth-switch span {
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .auth-switch span:hover { text-decoration: underline; }
+
+  /* ── Dashboard ── */
+  .dashboard {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 48px 80px;
+  }
+
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .dashboard-header h2 {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-family: var(--font-head);
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+  }
+
+  .course-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+  .course-card:hover { border-color: var(--accent); }
+
+  .course-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .course-name {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .stage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .stage-green { background: rgba(74,222,128,0.15); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+  .stage-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+  .stage-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+
+  .progress-bar-wrap {
+    background: var(--surface2);
+    border-radius: 100px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1s ease;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .lessons-list { margin-top: 20px; }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--surface2);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .lesson-item:hover { border-color: var(--accent); }
+
+  .lesson-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .lesson-check.done { background: var(--green); border-color: var(--green); color: #000; }
+
+  .lesson-title { font-size: 14px; font-weight: 500; }
+  .lesson-title.done { color: var(--muted); text-decoration: line-through; }
+
+  /* ── Mentor Dashboard ── */
+  .mentor-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .mentor-table th {
+    background: var(--surface2);
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .mentor-table td {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .mentor-table tr:hover td { background: rgba(124,106,247,0.05); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 14px;
+    z-index: 999;
+    display: none;
+    animation: slideUp 0.3s ease;
+    max-width: 320px;
+  }
+  .toast.show { display: flex; align-items: center; gap: 10px; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .hero, .features, .dashboard { padding-left: 20px; padding-right: 20px; }
+    .auth-card { padding: 28px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="logo">LearnTrack</div>
+  <div class="nav-links">
+    <button class="active" onclick="showPage('home')">Home</button>
+    <button onclick="showPage('login')">Login</button>
+    <button onclick="showPage('register')">Register</button>
+    <button onclick="showPage('dashboard')" id="dashBtn" style="display:none">Dashboard</button>
+    <button onclick="showPage('mentor')" id="mentorBtn" style="display:none">Mentor View</button>
+    <button onclick="logout()" id="logoutBtn" style="display:none">Logout</button>
+  </div>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ── HOME PAGE ── -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-badge">🚀 Project 16 — Course Progress Tracker</div>
+    <h1>Track Your Learning<br/><span>Journey</span></h1>
+    <p>Connect your Udemy & Coursera accounts, track progress, earn coins, and stay motivated with daily updates.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="showPage('register')">Get Started</button>
+      <button class="btn btn-outline" onclick="showPage('login')">Sign In</button>
+    </div>
+  </div>
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Progress Tracking</h3>
+      <p>Track completion % across all your enrolled courses in real time.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔴🟡🟢</div>
+      <h3>Stage Alerts</h3>
+      <p>Color-coded stages — Red, Yellow, Green — based on your progress.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔥</div>
+      <h3>Streaks & Coins</h3>
+      <p>Earn coins and maintain daily streaks to stay motivated.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📧</div>
+      <h3>Daily Emails</h3>
+      <p>Automated daily progress updates sent straight to your inbox.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👨‍🏫</div>
+      <h3>Mentor Dashboard</h3>
+      <p>Mentors can monitor all students' progress, stages, and streaks.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>Udemy & Coursera</h3>
+      <p>Connect external accounts to automatically fetch your courses.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGIN PAGE ── -->
+<div class="page" id="page-login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h2>Welcome back</h2>
+      <p class="subtitle">Sign in to continue your learning journey</p>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@gmail.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••"/>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleLogin()">Sign In</button>
+      <div class="auth-switch">Don't have an account? <span onclick="showPage('register')">Register</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── REGISTER PAGE ── -->
+<div class="page" id="page-register">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h2>Create account</h2>
+      <p class="subtitle">Start tracking your learning progress today</p>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Padma Priya"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="you@gmail.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="••••••••"/>
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="regRole">
+          <option value="student">Student</option>
+          <option value="mentor">Mentor</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleRegister()">Create Account</button>
+      <div class="auth-switch">Already have an account? <span onclick="showPage('login')">Sign In</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD PAGE ── -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard">
+    <div class="dashboard-header">
+      <div>
+        <h2 id="dashWelcome">Welcome back! 👋</h2>
+        <p style="color:var(--muted);font-size:14px;margin-top:4px;">Here's your learning progress</p>
+      </div>
+      <button class="btn btn-outline" onclick="sendEmail()">📧 Send Daily Email</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" id="statStreak">0</div>
+        <div class="stat-label">🔥 Day Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statCoins">0</div>
+        <div class="stat-label">🪙 Coins</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statCourses">0</div>
+        <div class="stat-label">📚 Courses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statCompleted">0%</div>
+        <div class="stat-label">✅ Avg Progress</div>
+      </div>
+    </div>
+    <p class="section-title">Your Courses</p>
+    <div id="coursesList">
+      <div style="text-align:center;color:var(--muted);padding:40px;">Loading courses...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MENTOR PAGE ── -->
+<div class="page" id="page-mentor">
+  <div class="dashboard">
+    <div class="dashboard-header">
+      <h2>Mentor Dashboard 👨‍🏫</h2>
+      <button class="btn btn-outline" onclick="loadMentor()">🔄 Refresh</button>
+    </div>
+    <div id="mentorContent">
+      <div style="text-align:center;color:var(--muted);padding:40px;">Loading students...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://127.0.0.1:8000/api';
+  let currentUser = null;
+
+  // ── Navigation ──
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'mentor') loadMentor();
+  }
+
+  // ── Toast ──
+  function toast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── Register ──
+  async function handleRegister() {
+    const name     = document.getElementById('regName').value;
+    const email    = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const role     = document.getElementById('regRole').value;
+    if (!name || !email || !password) return toast('Please fill all fields', 'error');
+    try {
+      const res = await fetch(`${API}/users/register/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        currentUser = data.user;
+        toast('Account created successfully!');
+        updateNav();
+        showPage('dashboard');
+      } else {
+        toast(JSON.stringify(data), 'error');
+      }
+    } catch(e) { toast('Cannot connect to server', 'error'); }
+  }
+
+  // ── Login ──
+  async function handleLogin() {
+    const email    = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) return toast('Please fill all fields', 'error');
+    try {
+      const res = await fetch(`${API}/users/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        currentUser = data.user;
+        toast('Welcome back, ' + currentUser.name + '!');
+        updateNav();
+        showPage('dashboard');
+      } else {
+        toast('Invalid email or password', 'error');
+      }
+    } catch(e) { toast('Cannot connect to server', 'error'); }
+  }
+
+  // ── Logout ──
+  function logout() {
+    currentUser = null;
+    updateNav();
+    showPage('home');
+    toast('Logged out successfully');
+  }
+
+  // ── Update Nav ──
+  function updateNav() {
+    const loggedIn = !!currentUser;
+    document.getElementById('dashBtn').style.display    = loggedIn ? 'block' : 'none';
+    document.getElementById('logoutBtn').style.display  = loggedIn ? 'block' : 'none';
+    document.getElementById('mentorBtn').style.display  = loggedIn && currentUser.role === 'mentor' ? 'block' : 'none';
+  }
+
+  // ── Load Dashboard ──
+  async function loadDashboard() {
+    if (!currentUser) { showPage('login'); return; }
+    document.getElementById('dashWelcome').textContent = `Welcome back, ${currentUser.name}! 👋`;
+    document.getElementById('statStreak').textContent  = currentUser.streaks;
+    document.getElementById('statCoins').textContent   = currentUser.coins;
+
+    try {
+      const res   = await fetch(`${API}/courses/`);
+      const courses = await res.json();
+      document.getElementById('statCourses').textContent = courses.length;
+
+      let totalPct = 0;
+      let html = '';
+
+      for (const course of courses) {
+        const pRes = await fetch(`${API}/progress/?user_id=${currentUser.id}&course_id=${course.id}`);
+        const prog = await pRes.json();
+        const pct  = parseFloat(prog.percentage) || 0;
+        totalPct  += pct;
+        const stage = prog.stage || 'red';
+        const stageLabel = stage === 'green' ? '🟢 On Track' : stage === 'yellow' ? '🟡 In Progress' : '🔴 Just Started';
+        const stageClass = `stage-${stage}`;
+
+        let lessonsHTML = '';
+        for (const mod of (course.modules || [])) {
+          for (const lesson of (mod.lessons || [])) {
+            const done = pct > 0;
+            lessonsHTML += `
+              <div class="lesson-item" onclick="completeLesson(${lesson.id}, this)">
+                <div class="lesson-check ${done ? 'done' : ''}">✓</div>
+                <span class="lesson-title ${done ? 'done' : ''}">${lesson.title}</span>
+              </div>`;
+          }
+        }
+
+        html += `
+          <div class="course-card">
+            <div class="course-top">
+              <div class="course-name">${course.title}</div>
+              <span class="stage-badge ${stageClass}">${stageLabel}</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="progress-meta">
+              <span>${prog.completed} of ${prog.total} lessons completed</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="lessons-list">${lessonsHTML}</div>
+          </div>`;
+      }
+
+      document.getElementById('statCompleted').textContent = courses.length ? Math.round(totalPct / courses.length) + '%' : '0%';
+      document.getElementById('coursesList').innerHTML = html || '<div style="text-align:center;color:var(--muted);padding:40px;">No courses found. Add courses via the API.</div>';
+    } catch(e) {
+      document.getElementById('coursesList').innerHTML = '<div style="text-align:center;color:var(--red);padding:40px;">Could not load courses. Make sure the server is running.</div>';
+    }
+  }
+
+  // ── Complete Lesson ──
+  async function completeLesson(lessonId, el) {
+    if (!currentUser) return;
+    try {
+      const res = await fetch(`${API}/progress/complete/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: currentUser.id, lesson: lessonId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast(`Lesson completed! ${data.progress} — ${data.stage.toUpperCase()}`);
+        loadDashboard();
+      } else {
+        toast('Already completed!', 'error');
+      }
+    } catch(e) { toast('Error completing lesson', 'error'); }
+  }
+
+  // ── Send Email ──
+  async function sendEmail() {
+    try {
+      const res  = await fetch(`${API}/notifications/send/`, { method: 'POST' });
+      const data = await res.json();
+      toast(data.message);
+    } catch(e) { toast('Could not send email', 'error'); }
+  }
+
+  // ── Mentor Dashboard ──
+  async function loadMentor() {
+    try {
+      const res  = await fetch(`${API}/mentors/dashboard/`);
+      const data = await res.json();
+
+      if (!data.length) {
+        document.getElementById('mentorContent').innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">No students found.</div>';
+        return;
+      }
+
+      let rows = '';
+      for (const student of data) {
+        for (const course of student.courses) {
+          const stageClass = `stage-${course.stage}`;
+          const stageLabel = course.stage === 'green' ? '🟢 Green' : course.stage === 'yellow' ? '🟡 Yellow' : '🔴 Red';
+          rows += `
+            <tr>
+              <td><strong>${student.name}</strong></td>
+              <td style="color:var(--muted)">${student.email}</td>
+              <td>${course.course}</td>
+              <td>${course.percentage}</td>
+              <td><span class="stage-badge ${stageClass}">${stageLabel}</span></td>
+              <td>🔥 ${student.streaks}</td>
+              <td>🪙 ${student.coins}</td>
+            </tr>`;
+        }
+      }
+
+      document.getElementById('mentorContent').innerHTML = `
+        <table class="mentor-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Email</th><th>Course</th>
+              <th>Progress</th><th>Stage</th><th>Streak</th><th>Coins</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch(e) {
+      document.getElementById('mentorContent').innerHTML = '<div style="text-align:center;color:var(--red);padding:40px;">Could not load mentor data.</div>';
+    }
+  }
+</script>
+</body>
+</html>
